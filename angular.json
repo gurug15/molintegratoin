@@ -25,6 +25,7 @@
               }
             ],
             "styles": [
+              "node_modules/molstar/build/viewer/molstar.css",
               "src/styles.css"
             ]
           },

@@ -1,0 +1,79 @@
+<!-- <div>
+  <div #viewerParent class="w-full h-96 relative  border-black">
+  <canvas #viewerCanvas class="absolute inset-0 w-full h-full"></canvas>
+</div>
+
+<input type="file" accept=".pdb" (change)="onFileSelected($event)" class="mt-2 p-2 border rounded" />
+<div class="mt-4">
+  <div class="block text-sm font-semibold mb-2">Background Color:</div>
+ <input type="color" [formControl]="colorControl" (change)="changeBackgroundColor($event)" />
+  <select (change)="changeBackgroundColor($event)" class="p-2 border rounded">
+    <option value="0xffffff">White</option>
+    <option value="0x000000">Black</option>
+    <option value="0x808080">Gray</option>
+    <option value="0x87ceeb">Light Blue</option>
+  </select>
+</div>
+</div> -->
+
+<div class="font-display bg-black text-gray-800 dark:text-gray-700">
+<div class="flex h-screen">
+<div class="w-[30%] bg-white/5 dark:bg-black/10 p-6 rounded-r-lg shadow-lg">
+<div class="flex flex-col space-y-8">
+<h2 class="text-2xl font-bold text-gray-900 dark:text-white">Display Controls</h2>
+<div>
+<h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">File Loading</h3>
+<label class="block">
+<span class="sr-only">Select PDB File</span>
+<input accept=".pdb" (change)="onFileSelected($event)" class="custom-file-input block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-primary/20 file:text-primary hover:file:bg-primary/30" type="file"/>
+</label>
+</div>
+<div>
+<h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Viewer Settings</h3>
+<div class="space-y-4">
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Background Color</span>
+</label>
+<div class="flex items-center space-x-3">
+<input aria-label="Color Picker" [formControl]="bgColorControl" (change)="changeBackgroundColor($event)" class="w-10 h-10 p-0 border-none rounded cursor-pointer bg-transparent" type="color" />
+</div>
+</div>
+<div class="space-y-4">
+<label class="block">
+<span class="text-sm font-medium text-gray-700 dark:text-gray-300">Structure Color</span>
+</label>
+<div class="flex items-center space-x-3">
+<input aria-label="Color Picker" (change)="changeStructureColor($event)" class="w-10 h-10 p-0 border-none rounded cursor-pointer bg-transparent" type="color" />
+</div>
+</div>
+</div>
+<div>
+  <h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Representation Style</h3>
+  <label class="block">
+    <span class="sr-only">Select Representation Style</span>
+    <!-- This select element replaces the previous button group -->
+    <select #repSelect (change)="setRepresentation(repSelect.value)" class="mt-1 block w-full rounded border-gray-300 dark:border-gray-600 bg-background-light dark:bg-background-dark text-gray-900 dark:text-white focus:border-primary focus:ring-primary form-select">
+      
+      <!-- Using the new @for block to create an <option> for each string in the availableRepresentations array -->
+      @for (rep of representationTypes; track rep[0]) {
+        <option class="bg-black" [value]="rep[0]">{{ rep[1] }}</option>
+      }
+
+    </select>
+  </label>
+</div>
+<div>
+<h3 class="text-lg font-semibold mb-4 text-gray-800 dark:text-gray-200">Camera Controls</h3>
+<div class="grid grid-cols-2 gap-4">
+<button (click)="recenterView()" class="py-2 px-4 rounded text-sm font-medium bg-primary/80 hover:bg-primary text-white">Recenter View</button>
+<button (click)="toggleSpin()" class="py-2 px-4 rounded text-sm font-medium bg-primary/80 hover:bg-primary text-white">Toggle Spin</button>
+</div>
+</div>
+</div>
+</div>
+<div #viewerParent class="w-[70%] relative">
+<canvas #viewerCanvas  class="absolute inset-0 w-full h-full"></canvas>
+</div>
+
+</div>
+</div>
