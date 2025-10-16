@@ -21,7 +21,7 @@ export class Experiment {
     plugin!: PluginContext; 
     isPluginReady = false;
     bgColorControl = new FormControl<string>('#000000', { nonNullable: true });
-    structureColorControl : Color = Color(0xffffff) ;
+    structureColorControl  = signal(Color(0xffffff)) ;
     selectedRepresentation = "";
     isStructureLoaded = signal(false);
     isSpinning = signal(false);
@@ -52,58 +52,97 @@ export class Experiment {
     
     
 
+// async setRepresentation(type: string): Promise<void> {
+//   if (!this.isStructureLoaded()) {
+//     console.warn('No structure loaded');
+//     return;
+//   }
+
+//   try {
+//     // Get all structure nodes from state
+//     const state = this.plugin.state.data;
+
+//   console.log('selectQ exists?', typeof state.selectQ);
+//     const structures = state.selectQ(q => 
+//       q.ofType(PluginStateObject.Molecule.Structure)
+//     )
+//     if (structures.length === 0) {
+//       console.warn('No structure found');
+//       return;
+//     }
+
+//     // Get the structure reference
+//     const structure = structures[0];
+    
+//     // Clear existing representations
+//     const representations = state.selectQ(q => {
+//         return q.ofType(PluginStateObject.Molecule.Structure.Representation3D);
+//     });
+//     for (const repr of representations) {
+//       await this.plugin.build().delete(repr.transform.ref).commit();
+//     }
+
+
+//     console.log("add representaion: ",this.plugin.builders.structure.representation.addRepresentation);
+//     if(!this.structureColorControl) return
+//     // Add new representation
+//     await this.plugin.builders.structure.representation.addRepresentation(
+//       structure, 
+//       { type: type as any,
+//         color: 'uniform',
+//         colorParams: { value: this.structureColorControl() }
+//       }
+//     )
+
+//     console.log(`Representation changed to: ${type}`);
+//   } catch (error) {
+//     console.error(`Failed to set representation:`, error);
+//   }
+// }
+changeStructureColor(event: Event) {
+  const input = event.target as HTMLInputElement;
+  const hexValue = input.value;
+  const intColor = parseInt(hexValue.replace('#', '0x'));
+
+  this.structureColorControl.set(Color(intColor));
+
+  this.setRepresentation(this.selectedRepresentation);
+}
+
+
 async setRepresentation(type: string): Promise<void> {
-  if (!this.isStructureLoaded()) {
-    console.warn('No structure loaded');
+  if (!this.isStructureLoaded() || !type) {
+    console.warn('No structure loaded or representation type provided');
     return;
   }
 
+  this.selectedRepresentation = type;
+
   try {
-    // Get all structure nodes from state
     const state = this.plugin.state.data;
-
-  console.log('selectQ exists?', typeof state.selectQ);
-    const structures = state.selectQ(q => 
-      q.ofType(PluginStateObject.Molecule.Structure)
-    )
-    if (structures.length === 0) {
-      console.warn('No structure found');
-      return;
-    }
-
-    // Get the structure reference
+    const structures = state.selectQ(q => q.ofType(PluginStateObject.Molecule.Structure));
+    if (structures.length === 0) return;
     const structure = structures[0];
-    
-    // Clear existing representations
-    const representations = state.selectQ(q => {
-        return q.ofType(PluginStateObject.Molecule.Structure.Representation3D);
-    });
+
+    const representations = state.selectQ(q => q.ofType(PluginStateObject.Molecule.Structure.Representation3D));
     for (const repr of representations) {
       await this.plugin.build().delete(repr.transform.ref).commit();
     }
 
-
-    console.log("add representaion: ",this.plugin.builders.structure.representation.addRepresentation);
-    if(!this.structureColorControl) return
-    // Add new representation
     await this.plugin.builders.structure.representation.addRepresentation(
-      structure, 
-      { type: type as any,
-        colorTheme: { 
-          name: 'uniform', 
-          params: { value: Color(this.structureColorControl) } 
-        }
+      structure,
+      {
+        type: type as any,
+        color: 'uniform',
+        colorParams: { value: this.structureColorControl() } // Read from the signal
       }
     );
 
     this.recenterView();
-
-    console.log(`Representation changed to: ${type}`);
   } catch (error) {
     console.error(`Failed to set representation:`, error);
   }
 }
-
 
   recenterView(){
     if (!this.plugin.canvas3d) {
@@ -113,7 +152,6 @@ async setRepresentation(type: string): Promise<void> {
     const sphere = this.plugin.canvas3d.boundingSphere;
 
     this.plugin.canvas3d.camera.focus(sphere.center,sphere.radius, 200);
-    // console.log('Bounding sphere:', this.plugin.canvas3d.boundingSphere);
   }
 
      async onFileSelected(event: Event) {
@@ -175,30 +213,26 @@ async setRepresentation(type: string): Promise<void> {
       
   }
 
-  changeStructureColor(event:Event){
+  // changeStructureColor(event:Event){
 
-    const input = event.target as HTMLInputElement;
-    const hexValue = input.value;
-    const colorConvert = (color:string):Color => {
-        const intColor = parseInt(hexValue.replace('#', '0x'));
-          this.structureColorControl = Color(intColor);
-        return  Color(intColor);
-      }
-
-    const colorValue =  signal(colorConvert(this.bgColorControl.value));
-    const component = this.plugin.managers.structure.hierarchy.current.structures[0]?.components;
-    console.log('Components found:', component);
-    console.log('Number of components:', component?.length);
-      console.log("structures:  - - --",this.plugin.managers.structure.hierarchy.current.structures);
-      if(component){
-      this.plugin.managers.structure.component.updateRepresentationsTheme(component,{
-          color: 'uniform',
-          colorParams: {
-            value: colorValue()
-          }
-      })
-       }
-  }
+  //   const input = event.target as HTMLInputElement;
+  //   const hexValue = input.value;
+  //   const intColor = parseInt(hexValue.replace('#', '0x'));
+  //   this.structureColorControl.set(Color(intColor));
+        
+  //   const component = this.plugin.managers.structure.hierarchy.current.structures[0]?.components;
+  //   console.log('Components found:', component);
+  //   console.log('Number of components:', component?.length);
+  //     console.log("structures:  - - --",this.plugin.managers.structure.hierarchy.current.structures);
+  //     if(component){
+  //     this.plugin.managers.structure.component.updateRepresentationsTheme(component,{
+  //         color: 'uniform',
+  //         colorParams: {
+  //           value: this.structureColorControl()
+  //         }
+  //     })
+  //      }
+  // }
 
   changeBackgroundColor(event:Event){
     // const select = event.target as HTMLSelectElement;
